@@ -1,0 +1,26 @@
+{
+  "name": "cli-tool",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "type":"module",
+  "scripts": {
+    "test": "tap --reporter=specy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VoidMats/cli-tool.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VoidMats/cli-tool/issues"
+  },
+  "homepage": "https://github.com/VoidMats/cli-tool#readme",
+  "dependencies": {
+    "yargs-parser": "^21.1.1"
+  },
+  "devDependencies": {
+    "tap": "^16.3.2"
+  }
+}
