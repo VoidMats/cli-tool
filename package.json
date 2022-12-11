@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "test": "tap --reporter=specy"
   },
@@ -17,9 +17,6 @@
     "url": "https://github.com/VoidMats/cli-tool/issues"
   },
   "homepage": "https://github.com/VoidMats/cli-tool#readme",
-  "dependencies": {
-    "yargs-parser": "^21.1.1"
-  },
   "devDependencies": {
     "tap": "^16.3.2"
   }
