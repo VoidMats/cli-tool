@@ -6,7 +6,7 @@ tap.test("", async (t) => {
     process.argv = [...process.argv, "--test"];
     console.log(process.argv)
     const cli = new CliTool();
-    cli.addFlags();
+    cli.configureFlags();
 
 
 });

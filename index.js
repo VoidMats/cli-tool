@@ -46,6 +46,7 @@ export default class CliTool {
             flagKey = flagKey.toLowerCase();
             flagValue.keys().forEach(k => k.toLowerCase());
             if (!flagValue.keys().includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._possibleTypes.join(",")}'`);
+            if (!this._possibleTypes.includes(flagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
         }
     }
 
@@ -55,22 +56,57 @@ export default class CliTool {
         for (const arg of this._argv) {
             const result = /^-{1,2}([\w=]+)/.exec(arg);
             if (result[1]) {
+                // We got a flag or alias
                 readInputs = false;
                 const checkForFlagResult = result[1].split('=');
-                if (checkForFlagResult[1]) {
-                    // Check config 
-                    for (const [configKey, configValue] of Object.entries(this._configFlags)) {
-                        
-                    }
-                    this._flags[checkForFlagResult[0]] = checkForFlagResult[1];
-                } else {
+                const flagKey = checkForFlagResult[0].toLowerCase();
+                const flagValue = checkForFlagResult[1];
+                const config  = this._configFlags[flagKey];
+                if (flagValue) {
+                    // flag has a '=' sign
+                    if (config) {
+                        switch(config.type.toLowerCase()) {
+                            case "boolean":
+                                this._flags[flagKey]
+                                break;
+                            case "number":
 
+                                break;
+                            case "string":
+
+                                break;
+                            default:
+                                throw new Error("Got a flag type that is not supported by the tool");
+                        }
+                    } 
+                    if (this._options.detectUnknownFlags) {
+                        this._flags[checkForFlagResult[0]] = checkForFlagResult[1];
+                    }
+                } else {
+                    // flag is missing '=' sign
+                    
                 }
-            } else {
-                if (readInputs) this._inputs.push(arg);
-                else break;
+                break;
             }
+            // read inputs
+            if (readInputs) this._inputs.push(arg);
         }
+    }
+
+    _validateAlias(argv) {
+        return (argv.startWith("--")) ? false : true;
+    }
+
+    _validateBoolean() {
+
+    }
+
+    _validateString() {
+
+    }
+
+    _validateNumber() {
+
     }
 
     _parseArgv() {
