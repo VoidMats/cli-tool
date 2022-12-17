@@ -17,15 +17,15 @@ export default class CliTool {
         this._configFlags = {};
         this._inputs = [];
         this._flags = {};
+        this._nextArgvBelongsToCurrent = undefined;
         this._possibleTypes = [
             "string",
             "boolean",
             "number"
         ];
 
-        this._addHelpFlag();
         this._validateFlags();
-        if (this.options.detectVersion) this._loadPackageJson();
+        if (this._options.detectVersion) this._loadPackageJson();
     }
 
     /**
@@ -33,7 +33,7 @@ export default class CliTool {
      * {
      *      help: {
      *          type: 'boolean',
-     *          alias: 'h',
+     *          alias: 'h' or '-h',
      *          default: 'This is default text',
      *          example: 'Text shown in example',
      *          required: true | false
@@ -44,73 +44,94 @@ export default class CliTool {
     configureFlags(config) {
         for (let [flagKey, flagValue] of Object.entries(config)) {
             flagKey = flagKey.toLowerCase();
-            flagValue.keys().forEach(k => k.toLowerCase());
-            if (!flagValue.keys().includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._possibleTypes.join(",")}'`);
+            Object.keys(flagValue).forEach(k => k.toLowerCase());
+            if (flagValue.alias) {
+                if (alias.startWith('-')) alias.slice(1);
+                flagValue.alias = flagValue.alias.toLowerCase();
+            }
+            if (!Object.keys(flagValue).includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._possibleTypes.join(",")}'`);
             if (!this._possibleTypes.includes(flagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
         }
     }
 
     _validateFlags() {
-        let nextArgvBelongsToCurrent = false;
         let readInputs = true;
         for (const arg of this._argv) {
-            const result = /^-{1,2}([\w=]+)/.exec(arg);
-            if (result[1]) {
-                // We got a flag or alias
+            this._validateForHelp(arg);
+            if (!this._validateInput(arg)) {
                 readInputs = false;
-                const checkForFlagResult = result[1].split('=');
-                const flagKey = checkForFlagResult[0].toLowerCase();
-                const flagValue = checkForFlagResult[1];
-                const config  = this._configFlags[flagKey];
-                if (flagValue) {
-                    // flag has a '=' sign
-                    if (config) {
-                        switch(config.type.toLowerCase()) {
-                            case "boolean":
-                                this._flags[flagKey]
-                                break;
-                            case "number":
-
-                                break;
-                            case "string":
-
-                                break;
-                            default:
-                                throw new Error("Got a flag type that is not supported by the tool");
-                        }
-                    } 
-                    if (this._options.detectUnknownFlags) {
-                        this._flags[checkForFlagResult[0]] = checkForFlagResult[1];
-                    }
+                if (this._validateAlias(arg)) {
+                    // Alias
+                    let result = this._validateEqualSign(arg);
+                    result[0] = this._findFlagFromAlias(result[0]);
+                    this._enterResult(result);
                 } else {
-                    // flag is missing '=' sign
-                    
-                }
-                break;
+                    // Flag
+                    const result = this._validateEqualSign(arg);
+                    this._enterResult(result, this._findConfigFromFlag(result[0]));
+                }   
             }
-            // read inputs
-            if (readInputs) this._inputs.push(arg);
+            if (readInputs) {
+                this._inputs.push(arg);
+                continue;
+            } 
+            if (!readInputs && this._nextArgvBelongsToCurrent) {
+                this._flags[this._nextArgvBelongsToCurrent] = arg;
+                this._nextArgvBelongsToCurrent = undefined;
+            }
         }
     }
 
-    _validateAlias(argv) {
-        return (argv.startWith("--")) ? false : true;
+    _validateForHelp(arg) {
+        if (arg === "-h" || arg === "--help") this._showHelp();
     }
 
-    _validateBoolean() {
+    _validateInput(arg) {
+        const result = /^-{1,2}/.exec(arg);
+        return (result) ? false : true; 
+    }
+
+    _validateAlias(arg) {
+        return (arg.startsWith("--")) ? false : true;
+    }
+
+    _validateEqualSign(arg) {
+        const checkForFlagResult = arg.split('=');
+        if (checkForFlagResult.length === 1) {
+            return [checkForFlagResult[0]];
+        } else {
+            return [checkForFlagResult[0].toLowerCase(), checkForFlagResult[1]];
+        }
+    }
+
+    _findConfigFromFlag(flag) {
+        return (this._configFlags[flag]) ? true : false;
+    }
+
+    _findFlagFromAlias(alias) {
+        if (alias.startWith('-')) alias.slice(1);
+        for (let [flagKey, flagValue] of Object.entries(config)) {
+            if (flagValue.alias === alias) return flagKey;
+        }
+        throw new Error(`Unknow alias '-${alias}'. Please refer to help (-h or --help) for more info `)
+    }
+
+    _enterResult(result, hasConfig = true) {
+        if (this._options.detectUnknownFlags || hasConfig) {
+            if (result.length === 1) {
+                this._nextArgvBelongsToCurrent = result[0];
+            } else {
+                this._flags[result[0]] = result[1];
+            }
+        }
+    }
+
+    _checkForRequiredFlags() {
 
     }
 
-    _validateString() {
+    _validateType() {
 
-    }
-
-    _validateNumber() {
-
-    }
-
-    _parseArgv() {
-        const argv = argvParser(this._argv);
     }
 
     _loadPackageJson() {
@@ -147,9 +168,7 @@ export default class CliTool {
 
     }
 
-
-
     get inputs() { return this._inputs; }
     get flags() { return this._flags; }
-    get help() { return this._help; }
+    get help() { return this.showHelp(); }
 }
