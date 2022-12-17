@@ -1,4 +1,4 @@
 import porcess from "node:process";
-import CliTool from "../index.js";
+import CliTool from "../../index.js";
 
 console.log(process.argv);
