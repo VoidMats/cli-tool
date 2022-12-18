@@ -24,7 +24,6 @@ export default class CliTool {
             "number"
         ];
 
-        this._validateFlags();
         if (this._options.detectVersion) this._loadPackageJson();
     }
 
@@ -42,16 +41,20 @@ export default class CliTool {
      * @param { Object } config 
      */
     configureFlags(config) {
+        this._configFlags = {};
         for (let [flagKey, flagValue] of Object.entries(config)) {
-            flagKey = flagKey.toLowerCase();
-            Object.keys(flagValue).forEach(k => k.toLowerCase());
-            if (flagValue.alias) {
-                if (alias.startWith('-')) alias.slice(1);
-                flagValue.alias = flagValue.alias.toLowerCase();
+            const updatedFlagKey = flagKey.toLowerCase();
+            let updatedFlagValue = {}
+            for (const [attr, value] of Object.entries(flagValue)) {
+                const updatedAttr = attr.toLowerCase();
+                if (updatedAttr === "alias" && value.startsWith('-') ) value.slice(1);
+                updatedFlagValue[updatedAttr] = value;
             }
-            if (!Object.keys(flagValue).includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._possibleTypes.join(",")}'`);
-            if (!this._possibleTypes.includes(flagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
+            if (!Object.keys(updatedFlagValue).includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._possibleTypes.join(", ")}'`);
+            if (!this._possibleTypes.includes(updatedFlagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
+            this._configFlags[updatedFlagKey] = updatedFlagValue;
         }
+        this._validateFlags();
     }
 
     _validateFlags() {
@@ -67,8 +70,10 @@ export default class CliTool {
                     this._enterResult(result);
                 } else {
                     // Flag
-                    const result = this._validateEqualSign(arg);
-                    this._enterResult(result, this._findConfigFromFlag(result[0]));
+                    let result = this._validateEqualSign(arg);
+                    if (result[0].startsWith('--')) result[0] = result[0].slice(2);
+                    const hasConfig = this._findConfigFromFlag(result[0])
+                    this._enterResult(result, hasConfig);
                 }   
             }
             if (readInputs) {
@@ -109,7 +114,7 @@ export default class CliTool {
     }
 
     _findFlagFromAlias(alias) {
-        if (alias.startWith('-')) alias.slice(1);
+        if (alias.startsWith('-')) alias.slice(1);
         for (let [flagKey, flagValue] of Object.entries(config)) {
             if (flagValue.alias === alias) return flagKey;
         }
@@ -117,12 +122,15 @@ export default class CliTool {
     }
 
     _enterResult(result, hasConfig = true) {
-        if (this._options.detectUnknownFlags || hasConfig) {
-            if (result.length === 1) {
-                this._nextArgvBelongsToCurrent = result[0];
-            } else {
-                this._flags[result[0]] = result[1];
-            }
+        if (hasConfig) this._enterValue(result);
+        if (this._options.detectUnknownFlags) this._enterValue(result);
+    }
+
+    _enterValue(result) {
+        if (result.length === 1) {
+            this._nextArgvBelongsToCurrent = result[0];
+        } else {
+            this._flags[result[0]] = result[1];
         }
     }
 

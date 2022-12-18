@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "tap --reporter=specy"
+    "test": "tap test/test*.js --reporter=specy"
   },
   "repository": {
     "type": "git",
