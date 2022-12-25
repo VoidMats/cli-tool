@@ -3,6 +3,18 @@ import * as url from "url";
 
 const __dirname = url.fileURLToPath(import.meta.url);
 
+/**
+ * TODO 
+ * - Validate options
+ * - Write help text
+ * - Check for -h or --help in config flags 
+ * - Remove all exceptions. Replace with process.exit(this._exitCode) 
+ * - Write test for mixed input and flags
+ * - Write test for detectUnknownFlags
+ * - Write test for booleanDefault
+ * - Write test for detectVersion
+ **/
+
 export default class CliTool {
 
     constructor(options = {}) {
@@ -11,6 +23,7 @@ export default class CliTool {
             detectVersion: false,
             booleanDefault: false,
             detectUnknownFlags: false,
+            exitCode: 0,
             ...options
         }
         this._argv = process.argv.slice(2);
@@ -73,6 +86,7 @@ export default class CliTool {
                     let result = this._validateEqualSign(arg);
                     if (result[0].startsWith('--')) result[0] = result[0].slice(2);
                     const hasConfig = this._findConfigFromFlag(result[0])
+                    console.log(`${result.join(" - ")} = ${hasConfig}`)
                     this._enterResult(result, hasConfig);
                 }   
             }
@@ -88,7 +102,10 @@ export default class CliTool {
     }
 
     _validateForHelp(arg) {
-        if (arg === "-h" || arg === "--help") this._showHelp();
+        if (arg === "-h" || arg === "--help") {
+            this._showHelp();
+            process.exit(this._exitCode);
+        }
     }
 
     _validateInput(arg) {
@@ -118,7 +135,7 @@ export default class CliTool {
         for (let [flagKey, flagValue] of Object.entries(config)) {
             if (flagValue.alias === alias) return flagKey;
         }
-        throw new Error(`Unknow alias '-${alias}'. Please refer to help (-h or --help) for more info `)
+        //throw new Error(`Unknow alias '-${alias}'. Please refer to help (-h or --help) for more info `)
     }
 
     _enterResult(result, hasConfig = true) {
@@ -130,7 +147,20 @@ export default class CliTool {
         if (result.length === 1) {
             this._nextArgvBelongsToCurrent = result[0];
         } else {
-            this._flags[result[0]] = result[1];
+            switch(this._configFlags[result[0]]?.type) {
+                case "string":
+                    this._flags[result[0]] = result[1];
+                    break;
+                case "boolean":
+                    this._flags[result[0]] = JSON.parse((result[1]));
+                    break;
+                case "number":
+                    this._flags[result[0]] = Number(result[1]);
+                    break;
+                default:
+                    // Beacuse config is missing or config type is wrong value will be passed as string
+                    this._flags[result[0]] = result[1];
+            }
         }
     }
 
@@ -150,17 +180,8 @@ export default class CliTool {
                 this._applicationVersion = json.version;
             } catch (error) {} // nope
         });
-        if (this._applicationVersion) {
+        if (!this._applicationVersion) {
             console.error(`Can't detect version from package.json`);
-        }
-    }
-
-    _addHelpFlag() {
-        this._configFlags["help"] = {
-            type: 'boolean',
-            alias: 'h',
-            default: this._createHelpText(),
-            required: false
         }
     }
 
