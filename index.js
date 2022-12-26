@@ -7,16 +7,26 @@ const __dirname = url.fileURLToPath(import.meta.url);
  * TODO 
  * - Validate options
  * - Write help text
- * - Check for -h or --help in config flags 
  * - Remove all exceptions. Replace with process.exit(this._exitCode) 
+ * - Check for required flags
+ * - Check that config.type = number actually is a number
  * - Write test for mixed input and flags
- * - Write test for detectUnknownFlags
  * - Write test for booleanDefault
  * - Write test for detectVersion
+ * - Write test for flags without value as boolean
+ * - Write test for default values 
+ * - Write test for alias
+ * - Write test for flags with next incomming input
+ * - Write test for help text
+ * - Split tests into boolean, string, number
  **/
 
 export default class CliTool {
 
+    /**
+     * 
+     * @param { Object } options 
+     */
     constructor(options = {}) {
         this._options = {
             disableColors: (process.env.NODE_DISABLE_COLORS) ? process.env.NODE_DISABLE_COLORS : false,
@@ -68,25 +78,26 @@ export default class CliTool {
             this._configFlags[updatedFlagKey] = updatedFlagValue;
         }
         this._validateFlags();
+        this._validateForRequiredFlags();
     }
 
     _validateFlags() {
         let readInputs = true;
-        for (const arg of this._argv) {
+        for (let i=0; i < this._argv.length; i++) {
+            const arg = this._argv[i];
+            const argNext = (i+1 < this._argv.length) ? this._argv[i+1] : undefined; 
             this._validateForHelp(arg);
             if (!this._validateInput(arg)) {
                 readInputs = false;
                 if (this._validateAlias(arg)) {
-                    // Alias
                     let result = this._validateEqualSign(arg);
                     result[0] = this._findFlagFromAlias(result[0]);
                     this._enterResult(result);
                 } else {
-                    // Flag
                     let result = this._validateEqualSign(arg);
                     if (result[0].startsWith('--')) result[0] = result[0].slice(2);
                     const hasConfig = this._findConfigFromFlag(result[0])
-                    console.log(`${result.join(" - ")} = ${hasConfig}`)
+                    //console.log(`${result.join(" - ")} = ${hasConfig}`)
                     this._enterResult(result, hasConfig);
                 }   
             }
@@ -101,10 +112,18 @@ export default class CliTool {
         }
     }
 
+    _validateForRequiredFlags() {
+        for (const [flag, conf] of Object.entries(this._configFlags)) {
+            if (conf.required && !this._flags[flag]) {
+                console.log(`Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
+                this.showHelp();
+            } 
+        }
+    }
+
     _validateForHelp(arg) {
         if (arg === "-h" || arg === "--help") {
-            this._showHelp();
-            process.exit(this._exitCode);
+            this.showHelp();
         }
     }
 
@@ -118,10 +137,11 @@ export default class CliTool {
     }
 
     _validateEqualSign(arg) {
-        const checkForFlagResult = arg.split('=');
+        let checkForFlagResult = arg.split('=');
         if (checkForFlagResult.length === 1) {
             return [checkForFlagResult[0]];
         } else {
+            //if ([null, ""].includes(checkForFlagResult[1])) checkForFlagResult[1] = undefined;
             return [checkForFlagResult[0].toLowerCase(), checkForFlagResult[1]];
         }
     }
@@ -147,29 +167,32 @@ export default class CliTool {
         if (result.length === 1) {
             this._nextArgvBelongsToCurrent = result[0];
         } else {
-            switch(this._configFlags[result[0]]?.type) {
+            // Copy key and value to remove circular reference
+            const copyFlag = `${result[0]}`;
+            let copyValue = `${result[1]}`;
+            switch(this._configFlags[copyFlag]?.type) {
                 case "string":
-                    this._flags[result[0]] = result[1];
+                    if (['', null].includes(copyValue)) copyValue = undefined;
+                    this._flags[copyFlag] = copyValue;
                     break;
                 case "boolean":
-                    this._flags[result[0]] = JSON.parse((result[1]));
+                    try {
+                        this._flags[copyFlag] = JSON.parse((copyValue.toLowerCase()));
+                    } catch (error) {
+                        console.error(error.message);
+                        process.exit(this._exitCode);
+                    }
                     break;
                 case "number":
-                    this._flags[result[0]] = Number(result[1]);
+                    // Check that copyValue actually is a number
+                    // TODO Hex number
+                    this._flags[copyFlag] = Number(copyValue);
                     break;
                 default:
                     // Beacuse config is missing or config type is wrong value will be passed as string
-                    this._flags[result[0]] = result[1];
+                    this._flags[copyFlag] = copyValue;
             }
         }
-    }
-
-    _checkForRequiredFlags() {
-
-    }
-
-    _validateType() {
-
     }
 
     _loadPackageJson() {
@@ -186,15 +209,22 @@ export default class CliTool {
     }
 
     _createHelpText() {
-
+        if (!this._options.disableColors) {
+            console.log('\x1b[36m%s\x1b[0m', "I am cyan");
+            console.log('\x1b[35m%s\x1b[0m', "FgMagneta");
+        } else {
+            console.log("some text")
+        }
     }
 
-    _showExample() {
+    _createExample() {
 
     }
 
     showHelp() {
-
+        const helpText = this._createHelpText();
+        console.log(helpText);
+        process.exit(this._exitCode);
     }
 
     get inputs() { return this._inputs; }

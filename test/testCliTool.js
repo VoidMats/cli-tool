@@ -7,19 +7,16 @@ const DEFAULT_CONFIG = {
     firstString: {
         type: "string",
         alias: "s",
-        default: "first string",
         example: "FirstTestString"
     },
     firstBoolean: {
         type: "boolean",
         alias: "b",
-        default: false,
         example: false
     },
     firstNumber: {
         type: "number",
         alias: "n",
-        default: 0,
         example: 3
     }
 };
@@ -42,10 +39,14 @@ const printResult = (cli) => {
     console.log("----------------------------");
     console.log("cli._configFlags:");
     console.log(cli._configFlags);
+    console.log("----------------------------");
+    console.log("cli.flags:");
+    console.log(cli.flags);
     console.log("============================");
 }
 
-tap.test("== Test for successful flags ==", async (t) => {
+
+tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) => {
     let index = 1;
     let msg = "";
 
@@ -120,7 +121,7 @@ tap.test("== Test for successful flags ==", async (t) => {
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    msg = ` ${index} - TWO NUMBER FLAG - detectUnknownFlags=false`;
+    msg = ` ${index} - TWO NUMBER FLAG - detectUnknownFlags=false with config for one flag`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstNumber=2", "--secondNumber=4"]); 
@@ -133,7 +134,7 @@ tap.test("== Test for successful flags ==", async (t) => {
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    msg = ` ${index} - TWO NUMBER FLAG - detectUnknownFlags=true`;
+    msg = ` ${index} - TWO NUMBER FLAG - detectUnknownFlags=true with config for one flag`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstNumber=2", "--secondNumber=4"]); 
@@ -142,13 +143,30 @@ tap.test("== Test for successful flags ==", async (t) => {
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { firstnumber: 2, secondnumber: 4 }, "cli.flags contain correct values", cli.flags);
-        console.log(cli.flags)
-        console.log(cli._configFlags)
+        // NB Because the second number does not have any config it ill be return as string
+        t2.same(cli.flags, { firstnumber: 2, secondnumber: '4' }, "cli.flags contain correct values", cli.flags);
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    /*
+    msg = ` ${index} - TWO NUMBER FLAG - detectUnknownFlags=false with config for two flags`;
+    index++;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstNumber=2", "--secondNumber=4"]); 
+        const cli = new CliTool({ detectUnknownFlags: false });
+        const config = addConfig({ secondNumber: { 
+            type: "number",
+            alias: "l",
+            default: 0,
+            example: 4
+        }});
+        cli.configureFlags(config);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstnumber: 2, secondnumber: 4 }, "cli.flags contain correct values", cli.flags);
+        if (t2.counts.fail > 0) printResult(cli, index);
+    });
+
     msg = ` ${index} - ONE BOOLEAN FLAG`;
     index++;
     t.test(msg, async (t2) => {
@@ -162,7 +180,7 @@ tap.test("== Test for successful flags ==", async (t) => {
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    msg = ` ${index} - TWO BOOLEAN FLAG - detectUnknownFlags=false`;
+    msg = ` ${index} - TWO BOOLEAN FLAG - detectUnknownFlags=false with config for one flag`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstBoolean=true", "--secondBoolean=false"]); 
@@ -170,17 +188,37 @@ tap.test("== Test for successful flags ==", async (t) => {
         cli.configureFlags(DEFAULT_CONFIG);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
-        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { firstboolean: true, secondboolean: false }, "cli.flags contain correct values", cli.flags);
+        t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstboolean: true }, "cli.flags contain correct values", cli.flags);
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    msg = ` ${index} - TWO BOOLEAN FLAG - detectUnknownFlags=true`;
+    msg = ` ${index} - TWO BOOLEAN FLAG - detectUnknownFlags=true with config for one flag`;
+    index++;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstBoolean=true", "--secondBoolean=false"]); 
+        const cli = new CliTool({ detectUnknownFlags: true });
+        cli.configureFlags(DEFAULT_CONFIG);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        // NB Because the second boolean does not have any config it ill be return as string
+        t2.same(cli.flags, { firstboolean: true, secondboolean: 'false' }, "cli.flags contain correct values", cli.flags);
+        if (t2.counts.fail > 0) printResult(cli, index);
+    });
+
+    msg = ` ${index} - TWO BOOLEAN FLAG - detectUnknownFlags=false with config for two flags`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstBoolean=true", "--secondBoolean=false"]); 
         const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        const config = addConfig({ secondBoolean: { 
+            type: "boolean",
+            alias: "l",
+            default: false,
+            example: false
+        }});
+        cli.configureFlags(config);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
@@ -188,19 +226,96 @@ tap.test("== Test for successful flags ==", async (t) => {
         if (t2.counts.fail > 0) printResult(cli, index);
     });
 
-    */
 });
 
-tap.test("", async (t) => {
 
-    t.test("", async (t2) => {
+tap.test("== Test for successful flags with default values ==", async (t) => {
+    let index = 1;
+    let msg = "";
 
+    msg = ` ${index} - ONE STRING FLAG - without equal sign and no default`;
+    index++;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString"]); 
+        const cli = new CliTool();
+        cli.configureFlags(DEFAULT_CONFIG);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 0, "correct number of flags", cli.flags);
+        t2.same(cli.flags, {}, "cli.flags contain correct values", cli.flags);
+        console.log(cli.flags)
+        console.log(cli._flags)
+        if (t2.counts.fail > 0) printResult(cli);
     });
+
+    msg = ` ${index} - ONE STRING FLAG - with empty equal sign and no default`;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString="]); 
+        const cli = new CliTool();
+        cli.configureFlags(DEFAULT_CONFIG);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 0, "correct number of flags", cli.flags);
+        t2.same(cli.flags, {}, "cli.flags contain correct values", cli.flags);
+        console.log(cli._flags)
+        if (t2.counts.fail > 0) printResult(cli);
+    });
+
+
+    msg = ` ${index} - ONE STRING FLAG - with empty equal sign and no default`;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString=''"]); 
+        const cli = new CliTool();
+        cli.configureFlags(DEFAULT_CONFIG);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 0, "correct number of flags", cli.flags);
+        t2.same(cli.flags, {}, "cli.flags contain correct values", cli.flags);
+        console.log(cli.flags)
+        if (t2.counts.fail > 0) printResult(cli);
+    });
+
+    msg = ` ${index} - ONE STRING FLAG - without equal sign, but with default`;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString"]); 
+        const cli = new CliTool();
+        const config = addConfig({ firstString: {
+            type: "string",
+            alias: "s",
+            default: "FirstText",
+            example: "FirstTestString"
+        }});
+        console.log(config)
+        cli.configureFlags(config);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firststring: "FirstText"}, "cli.flags contain correct values", cli.flags);
+        if (t2.counts.fail > 0) printResult(cli);
+    });
+
+    msg = ` ${index} - ONE STRING FLAG - with empty equal sign, but with default`;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString"]); 
+        const cli = new CliTool();
+        const config = addConfig({ firstString: {
+            type: "string",
+            alias: "s",
+            default: "FirstText",
+            example: "FirstTestString"
+        }});
+        cli.configureFlags(config);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firststring: "SomeText"}, "cli.flags contain correct values", cli.flags);
+        if (t2.counts.fail > 0) printResult(cli);
+    });
+
 })
 
 tap.test("== Check incomming config will set lower case ==", async (t) => {
-    process.argv = resetProcessArgv(["--test"]); 
-    //[...process.argv, "--test"];
+    process.argv = resetProcessArgv(["--test"]);
     console.log(process.argv)
     const cli = new CliTool();
     cli.configureFlags({
@@ -213,6 +328,31 @@ tap.test("== Check incomming config will set lower case ==", async (t) => {
     });
     t.ok(Object.keys(cli._configFlags.test).includes("type"), "");
     if (t.counts.fail > 0) printResult(cli, 0);
+});
+
+
+tap.test("== Check if flag is missing when config require it ==", async (t) => {
+    let index = 1;
+    let msg = "";
+
+    msg = ` ${index} - ONE STRING FLAG - with empty equal sign, but with default`;
+    t.test(msg, async (t2) => {
+        process.argv = resetProcessArgv(["--firstString"]); 
+        const cli = new CliTool();
+        const config = addConfig({ secondString: {
+            type: "string",
+            alias: "s",
+            default: "SecondText",
+            required: true,
+            example: "SecondTestString"
+        }});
+        cli.configureFlags(config);
+        t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+        t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+        t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firststring: "SomeText"}, "cli.flags contain correct values", cli.flags);
+        if (t2.counts.fail > 0) printResult(cli);
+    });
 });
 
 /*
