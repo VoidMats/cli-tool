@@ -7,6 +7,8 @@ const __dirname = url.fileURLToPath(import.meta.url);
  * TODO 
  * - Validate options
  * - Write help text
+ *    - Write options text
+ *    - Write usage text
  * - Remove all exceptions. Replace with process.exit(this._exitCode) 
  * - Check for required flags
  * - Check that config.type = number actually is a number
@@ -27,7 +29,8 @@ export default class CliTool {
      * 
      * @param { Object } options 
      */
-    constructor(options = {}) {
+    constructor(description, options = {}) {
+        this._description = description;
         this._options = {
             disableColors: (process.env.NODE_DISABLE_COLORS) ? process.env.NODE_DISABLE_COLORS : false,
             detectVersion: false,
@@ -48,6 +51,7 @@ export default class CliTool {
         ];
 
         if (this._options.detectVersion) this._loadPackageJson();
+        this._validateDescription();
     }
 
     /**
@@ -57,7 +61,7 @@ export default class CliTool {
      *          type: 'boolean',
      *          alias: 'h' or '-h',
      *          default: 'This is default text',
-     *          example: 'Text shown in example',
+     *          description: 'Text shown in example',
      *          required: true | false
      *      } 
      * }
@@ -79,6 +83,14 @@ export default class CliTool {
         }
         this._validateFlags();
         this._validateForRequiredFlags();
+    }
+
+    configureInputs(config) {
+
+    }
+
+    _validateDescription() {
+
     }
 
     _validateFlags() {
@@ -210,15 +222,36 @@ export default class CliTool {
 
     _createHelpText() {
         if (!this._options.disableColors) {
-            console.log('\x1b[36m%s\x1b[0m', "I am cyan");
-            console.log('\x1b[35m%s\x1b[0m', "FgMagneta");
+            console.log("\x1b[45m Usage: \x1b[0m\n"); // Magneta
+            console.log(this._description + "\n");
+            console.log(`\t$\x1b[35m ${"asdas"} \x1b[36m<commands>\x1b[90m [options] \x1b[0m\n`);
+            console.log("\x1b[46m Commands: \x1b[0m"); // Cyan
+
+            console.log("\x1b[100m Options: \x1b[0m"); // Grey
+            this._createTextOptions();
         } else {
-            console.log("some text")
+            console.log("Usage: ");
+
+            console.log("Commands: ");
+
+            console.log("Options: ");
+            this._createTextOptions();
         }
     }
 
-    _createExample() {
+    _createTextOptions() {
+        for (const [key, config] of Object.entries(this._configFlags)) {
+            let option = `\t --${key}\t${(config.alias) ? `-${config.alias}` : ""}\t`;
+            if (config.description) option += config.description;
+            if (config.default) option += `[${config.default}]`;
+            console.log(option);
+        }
+    }
 
+    _createTextCommands() {
+        for (const [key, config] of Object.entries()) {
+            let command = `\t `
+        }
     }
 
     showHelp() {
