@@ -26,8 +26,18 @@ const DEFAULT_CONFIG = {
     }
 };
 
+const DEFAULT_INPUT = [
+    {
+        description: "input file",
+    },
+    {
+        description: "output file"
+    }
+]
+
 export {
     run,
     resetProcessArgv,
-    DEFAULT_CONFIG
+    DEFAULT_CONFIG,
+    DEFAULT_INPUT
 }
