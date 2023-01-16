@@ -24,6 +24,7 @@ const __filename = path.basename(__dirname);
  * - Write test for flags with next incomming input
  * - Write test for help text
  * - Split tests into boolean, string, number
+ * - Write README
  **/
 
 export default class CliTool {
@@ -44,6 +45,7 @@ export default class CliTool {
         }
         this._applicationName = __filename;
         this._argv = process.argv.slice(2);
+        this._showHelp = false;
         this._configFlags = {};
         this._configInputs = [];
         this._flags = {};
@@ -75,8 +77,8 @@ export default class CliTool {
      *      help: {
      *          type: 'boolean',
      *          alias: 'h' or '-h',
-     *          default: 'This is default text',
      *          description: 'Text shown in example',
+     *          default: 'This is default text',
      *          required: true | false
      *      } 
      * }
@@ -100,6 +102,7 @@ export default class CliTool {
     }
 
     /**
+     * All configurations for the input/commands are order dependent
      * The input can be configured as following:
      * [
      *      {
@@ -114,7 +117,7 @@ export default class CliTool {
     configureInputs(config) {
         this._configInputs = [];
         for (const input of config) {
-            let updatedInputValue = {}
+            let updatedInputValue = {};
             for (const [attr, value] of Object.entries(input)) {
                 const updatedAttr = attr.toLowerCase();
                 if (["description", "default", "required", "name"].includes(updatedAttr)) {
@@ -128,8 +131,9 @@ export default class CliTool {
 
     _validation() {
         this._validateArguments();
-        if (Object.keys(this._configFlags).length !== 0) this._validateForRequiredFlags();
         if (Object.keys(this._configInputs).length !== 0) this._validateForRequiredInputs();
+        if (Object.keys(this._configFlags).length !== 0) this._validateForRequiredFlags();
+        if (this._showHelp) this.showHelp();
     }
 
     _validateArguments() {
@@ -190,7 +194,7 @@ export default class CliTool {
     // Methods for validation of argument
 
     _validateArgumentForHelp(arg) {
-        if (arg === "-h" || arg === "--help") this.showHelp();
+        if (arg === "-h" || arg === "--help") this._showHelp = true;
     }
 
     _validateArgumentForInput(arg) {
@@ -218,7 +222,7 @@ export default class CliTool {
 
     _findFlagFromAlias(alias) {
         if (alias.startsWith('-')) alias.slice(1);
-        for (let [flagKey, flagValue] of Object.entries(config)) {
+        for (let [flagKey, flagValue] of Object.entries(alias)) {
             if (flagValue.alias === alias) return flagKey;
         }
         //throw new Error(`Unknow alias '-${alias}'. Please refer to help (-h or --help) for more info `)
@@ -278,7 +282,7 @@ export default class CliTool {
         if (!this._options.disableColors) {
             console.log("\x1b[45m Usage: \x1b[0m", '\n'); // Magneta
             console.log(this._description, '\n');
-            console.log(`\t $\x1b[35m ${"asdas"} \x1b[36m<commands>\x1b[90m [options] \x1b[0m\n`);
+            console.log(`\t $\x1b[35m node ${this._applicationName} \x1b[36m<commands>\x1b[90m [options] \x1b[0m\n`);
             console.log("\x1b[46m Commands: \x1b[0m"); // Cyan
             this._createTextInputs();
             console.log("\x1b[100m Options: \x1b[0m"); // Grey
@@ -286,6 +290,7 @@ export default class CliTool {
         } else {
             console.log("Usage: ");
             console.log(this._description, '\n');
+            console.log(`\t $ node ${this._applicationName} <commands> [options] \n`);
             console.log("Commands/Inputs: ");
             this._createTextInputs();
             console.log("Options: ");
