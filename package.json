@@ -8,13 +8,15 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "test": "tap test/testGeneral.js --reporter=specy"
+    "test": "tap test/test*.js --reporter=specy"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/VoidMats/cli-tool.git"
   },
-  "author": "",
+  "author": {
+    "name": "Mats Eriksson"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/VoidMats/cli-tool/issues"
@@ -22,5 +24,8 @@
   "homepage": "https://github.com/VoidMats/cli-tool#readme",
   "devDependencies": {
     "tap": "^16.3.2"
+  },
+  "dependencies": {
+    "minimist": "^1.2.8"
   }
 }
