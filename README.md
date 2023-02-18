@@ -1,8 +1,12 @@
 # cli-tool
 
+## Features
+ * Parses arguments through mini
+ * 
+
 ## Installation
 
-### Why do I a need node js 16
+## 
 
 
 ## How to use
