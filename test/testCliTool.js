@@ -1,25 +1,9 @@
 import process from "node:process";
 import tap from "tap";
 import CliTool from "../index.js";
+import { DEFAULT_FLAGS } from "./utils/utils.js";
 
 const SAVED_PROCESS_ARGV = Array.from(process.argv);
-const DEFAULT_CONFIG = {
-    firstString: {
-        type: "string",
-        alias: "s",
-        example: "FirstTestString"
-    },
-    firstBoolean: {
-        type: "boolean",
-        alias: "b",
-        example: false
-    },
-    firstNumber: {
-        type: "number",
-        alias: "n",
-        example: 3
-    }
-};
 
 const resetProcessArgv = (argv = []) => {
     const array = process.argv.slice(0, 2);
@@ -27,7 +11,7 @@ const resetProcessArgv = (argv = []) => {
 }
 
 const addConfig = (config = {}) => {
-    const modefiedConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    const modefiedConfig = JSON.parse(JSON.stringify(DEFAULT_FLAGS));
     for (const [k, v] of Object.entries(config)) modefiedConfig[k] = v;
     return modefiedConfig;
 }
@@ -46,7 +30,7 @@ const printResult = (cli) => {
 }
 
 
-tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) => {
+tap.test("== Test for successful flags {detectUnknownFlags: false} ==", async (t) => {
     let index = 1;
     let msg = "";
 
@@ -54,8 +38,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstString=SomeText"]); 
-        const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        const cli = new CliTool().parse(null, DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -63,18 +46,17 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
         if (t2.counts.fail > 0) printResult(cli);
     });
 
-    msg = ` ${index} - TWO STRING FLAGS - detectUnknownFlags=false with config for two flags`;
+    msg = ` ${index} - TWO STRING FLAGS`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstString=FirstText", "--secondString=SecondText"]); 
-        const cli = new CliTool({ detectUnknownFlags: false });
         const config = addConfig({ secondString: { 
             type: "string",
             alias: "l",
             default: "second string",
             example: "SecondTestString"
         }});
-        cli.configureFlags(config);
+        const cli = new CliTool().parse(null, config);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
@@ -87,7 +69,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstString=FirstText", "--secondString=SecondText"]); 
         const cli = new CliTool({ detectUnknownFlags: false });
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -100,7 +82,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstString=FirstText", "--secondString=SecondText"]); 
         const cli = new CliTool({ detectUnknownFlags: true });
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
@@ -113,7 +95,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstNumber=2"]); 
         const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -126,7 +108,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstNumber=2", "--secondNumber=4"]); 
         const cli = new CliTool({ detectUnknownFlags: false });
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -139,7 +121,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstNumber=2", "--secondNumber=4"]); 
         const cli = new CliTool({ detectUnknownFlags: true });
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
@@ -172,7 +154,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstBoolean=true"]); 
         const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -185,7 +167,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstBoolean=true", "--secondBoolean=false"]); 
         const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -198,7 +180,7 @@ tap.test("== Test for successful flags with detectUnknownFlags ==", async (t) =>
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstBoolean=true", "--secondBoolean=false"]); 
         const cli = new CliTool({ detectUnknownFlags: true });
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);

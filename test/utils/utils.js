@@ -8,7 +8,7 @@ const resetProcessArgv = (argv = []) => {
     return Array.from(array.concat(argv));
 }
 
-const DEFAULT_CONFIG = {
+const DEFAULT_FLAGS = {
     firstString: {
         type: "string",
         alias: "s",
@@ -23,21 +23,45 @@ const DEFAULT_CONFIG = {
         type: "number",
         alias: "n",
         description: "Description for a number"
+    },
+    firstPath: {
+        type: "path",
+        alias: "-f",
+        description: "Description for a path"
+    },
+    firstUrl: {
+        type: "url",
+        alias: "u",
+        description: "Description for a url"
     }
 };
 
-const DEFAULT_INPUT = [
+const DEFAULT_INPUTS = [
     {
-        description: "input file",
+        type: "string",
+        description: "Description for an input string"
     },
     {
-        description: "output file"
+        type: "boolean",
+        description: "Description for an input boolean"
+    },
+    {
+        type: "number",
+        description: "Description for an input number"
+    },
+    {
+        type: "path",
+        description: "Description for an input path"
+    },
+    {
+        type: "url",
+        description: "Description for an input url"
     }
 ]
 
 export {
     run,
     resetProcessArgv,
-    DEFAULT_CONFIG,
-    DEFAULT_INPUT
+    DEFAULT_FLAGS,
+    DEFAULT_INPUTS
 }

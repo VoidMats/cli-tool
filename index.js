@@ -75,16 +75,6 @@ export default class CliTool {
     }
 
     /**
-     * Method for adding config for both input and flags. 
-     * 
-     * @param { Object } configInput 
-     * @param { Object } configFlag 
-     */
-    configure(configInput, configFlag) {
-        
-    }
-
-    /**
      * The flags can be configured as following: 
      * {
      *      all: {
@@ -111,7 +101,6 @@ export default class CliTool {
             if (!this._POSSIBLE_TYPES.includes(updatedFlagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
             this._configFlags[updatedFlagKey] = updatedFlagValue;
         }
-        this.parse();
     }
 
     /**
@@ -140,7 +129,6 @@ export default class CliTool {
             }
             this._configInputs.push(updatedInputValue);
         }
-        this.parse();
     }
 
     parse(configInput, configFlag) {
@@ -154,6 +142,7 @@ export default class CliTool {
         this._validateForHelp();
         this._validateFlags();
         this._validateInputs();
+        return this;
     }
 
     _validateFlags() {
