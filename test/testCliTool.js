@@ -42,8 +42,8 @@ tap.test("== Test for successful flags {detectUnknownFlags: false} ==", async (t
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { firststring: "SomeText"}, "cli.flags contain correct values", cli.flags);
-        if (t2.counts.fail > 0) printResult(cli);
+        t2.same(cli.flags, { firstString: "SomeText"}, "cli.flags contain correct values", cli.flags);
+        //if (t2.counts.fail > 0) printResult(cli);
     });
 
     msg = ` ${index} - TWO STRING FLAGS`;
@@ -60,21 +60,20 @@ tap.test("== Test for successful flags {detectUnknownFlags: false} ==", async (t
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { firststring: "FirstText", secondstring: "SecondText"}, "cli.flags contain correct values", cli.flags);
-        if (t2.counts.fail > 0) printResult(cli, index);
+        t2.same(cli.flags, { firstString: "FirstText", secondString: "SecondText"}, "cli.flags contain correct values", cli.flags);
+        //if (t2.counts.fail > 0) printResult(cli, index);
     });
     
-    msg = ` ${index} - TWO STRING FLAGS - detectUnknownFlags=false with config for one flag`;
+    msg = ` ${index} - TWO STRING FLAGS - with config for one flag`;
     index++;
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--firstString=FirstText", "--secondString=SecondText"]); 
-        const cli = new CliTool({ detectUnknownFlags: false });
-        cli.configureFlags(DEFAULT_FLAGS);
+        const cli = new CliTool().parse(null, DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
         t2.same(cli.flags, { firststring: "FirstText" }, "cli.flags contain correct values", cli.flags);
-        if (t2.counts.fail > 0) printResult(cli, index);
+        //if (t2.counts.fail > 0) printResult(cli, index);
     });
 
     msg = ` ${index} - TWO STRING FLAGS - detectUnknownFlags=true with config for one flag`;

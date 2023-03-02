@@ -8,7 +8,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "test": "tap test/testCliTool.js --reporter=specy"
+    "test": "clear && tap test/testCliTool.js --reporter=specy"
   },
   "repository": {
     "type": "git",

@@ -88,6 +88,7 @@ export default class CliTool {
      * @param { Object } config 
      */
     configureFlags(config) {
+        console.log("trigger config flags")
         this._configFlags = {};
         for (let [flagKey, flagValue] of Object.entries(config)) {
             const updatedFlagKey = flagKey.toLowerCase();
@@ -176,7 +177,12 @@ export default class CliTool {
         }
         if (!this._options.detectUnknown) {
             copyFlags.forEach(f => {
-                if (!this._flags[f]) delete this._flags[f]; 
+                console.log(f)
+                if (!this._configFlags[f]) {
+                    console.log(f)
+                    delete this._flags[f];
+                    console.log(this._flags)
+                }
             });
         }
     }
@@ -210,7 +216,7 @@ export default class CliTool {
         }
         if (!this._options.detectUnknown) {
             copyInputs.forEach(i => {
-                if (!this._inputs[i]) this._inputs.splice(i, 1);
+                if (!this._configInputs[i]) this._inputs.splice(i, 1);
             });
         }
     }
