@@ -91,16 +91,14 @@ export default class CliTool {
         console.log("trigger config flags")
         this._configFlags = {};
         for (let [flagKey, flagValue] of Object.entries(config)) {
-            const updatedFlagKey = flagKey.toLowerCase();
             let updatedFlagValue = {}
             for (const [attr, value] of Object.entries(flagValue)) {
-                const updatedAttr = attr.toLowerCase();
-                if (updatedAttr === "alias" && value.startsWith('-') ) value.slice(1);
-                updatedFlagValue[updatedAttr] = value;
+                if (attr === "alias" && value.startsWith('-') ) value.slice(1);
+                updatedFlagValue[attr] = value;
             }
             if (!Object.keys(updatedFlagValue).includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._POSSIBLE_TYPES.join(", ")}'`);
             if (!this._POSSIBLE_TYPES.includes(updatedFlagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
-            this._configFlags[updatedFlagKey] = updatedFlagValue;
+            this._configFlags[flagKey] = updatedFlagValue;
         }
     }
 
@@ -133,10 +131,10 @@ export default class CliTool {
     }
 
     parse(configInput, configFlag) {
-        if (!this._configInputs && configInput) this.configureInputs(configInput);
-        if (!this._configFlags && configFlag) this.configureFlags(configFlag);
+        if (!Object.keys(this._configInputs).length && configInput) this.configureInputs(configInput);
+        if (!Object.keys(this._configFlags).length && configFlag) this.configureFlags(configFlag);
         // Done with configuration. Parse arguments and validate them
-        const parsed = argvParser(this._argv);
+        const parsed = argvParser(this._argv, { boolean: true });
         this._inputs = Array.from(parsed._);
         delete parsed._;
         this._flags = parsed;
@@ -147,7 +145,7 @@ export default class CliTool {
     }
 
     _validateFlags() {
-        const copyFlags = [];
+        const validatedFlags = {};
         for (const [flag, conf] of Object.entries(this._configFlags)) {
             if (conf.alias) {
                 if (!this._flags[flag]) this._flags[flag] = this._flags[conf.alias];
@@ -160,11 +158,11 @@ export default class CliTool {
                 console.log(`Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
                 this.showHelp();
             }
-            if (conf.type === "path" && !fs.existsSync(this._flags[flag])) {
+            if (conf.type === "path" && this._flags[flag] && !fs.existsSync(this._flags[flag])) {
                 console.log(`Flag '${flag}' has none valid path. Please refer to --help or -h.\n`);
                 this.showHelp();
             }
-            if (conf.type === "url") {
+            if (conf.type === "url" && this._flags[flag]) {
                 try {
                     new URL(this._flags[flag]);
                 } catch (error) {
@@ -172,26 +170,24 @@ export default class CliTool {
                     console.log(error.message);
                 }
             }
-            this._flags[flag] = this._correctValue(conf.type, this._flags[flag]);
-            copyFlags.push(flag);
+            const value = this._correctValue(conf.type, this._flags[flag]);
+            if (value) validatedFlags[flag] = value; 
         }
+        this._flags = validatedFlags;
         if (!this._options.detectUnknown) {
-            copyFlags.forEach(f => {
-                console.log(f)
-                if (!this._configFlags[f]) {
-                    console.log(f)
-                    delete this._flags[f];
-                    console.log(this._flags)
+            console.log("trigger Unknown")
+            for (const [flag, value] of Object.entries(this._flags)) {
+                if (!this._configFlags[flag]) {
+                    delete this._flags[flag];
                 }
-            });
+            }
         }
     }
 
     _validateInputs() {
-        const copyInputs = [];
+        const validateInputs = [];
         for (let i = 0; i < this._configInputs.length; i++ ) {
             const config = this._configInputs[i];
-            copyInputs.push()
             if (config.default && this._inputs[i]) {
                 this._inputs[i] = config.default;
             }
@@ -199,11 +195,11 @@ export default class CliTool {
                 console.log(`Input '${i + 1}'  with value '${this._inputs[i]}' is missing in cli command. Please refer to --help or -h. \n`);
                 this.showHelp();
             }
-            if (config.type === "path" && !fs.existsSync(this._inputs[i])) {
+            if (config.type === "path" && this._inputs[i] && !fs.existsSync(this._inputs[i])) {
                 console.log(`Input '${i + 1}' with value '${this._inputs[i]}' has none valid path. Please refer to --help or -h. \n`);
                 this.showHelp();
             }
-            if (conf.type === "url") {
+            if (config.type === "url" && this._inputs[i]) {
                 try {
                     new URL(this._inputs[i]);
                 } catch (error) {
@@ -211,11 +207,13 @@ export default class CliTool {
                     console.log(error.message);
                 }
             }
-            this._inputs[i] = this._correctValue(config.type, this._inputs[i]);
-            copyInputs.push(i)
+            const value = this._correctValue(config.type, this._inputs[i]);
+            if (value) validateInputs.push(value);
         }
+        console.log(validateInputs)
+        this._inputs = validateInputs;
         if (!this._options.detectUnknown) {
-            copyInputs.forEach(i => {
+            this._inputs.forEach(i => {
                 if (!this._configInputs[i]) this._inputs.splice(i, 1);
             });
         }
@@ -272,8 +270,8 @@ export default class CliTool {
     }
 
     _createHelpText() {
-        if (this._application.name) console.log(`\n    ${this._application.name.toUpperCase()}`);
-        if (this._application.version) console.log(`    Version: ${this._application.version}`);
+        if (this._application.name) console.log(`\n ${this._application.name.toUpperCase()}`);
+        if (this._application.version) console.log(` Version: ${this._application.version}\n`);
         if (!this._options.disableColors) {
             console.log("\x1b[45m Usage: \x1b[0m", '\n'); // Magneta
             console.log(this._description, '\n');
@@ -300,11 +298,11 @@ export default class CliTool {
             if (config.default) option += ` [${config.default}]`;
             console.log(option);
         }
+        console.log(`\t --help \t-h \tThis text`);
         console.log('\n');
     }
 
     _createTextInputs() {
-        console.log(this._configInputs)
         for (let i = 0; i < this._configInputs.length; i++) {
             const config = this._configInputs[i];
             let input = `\t$ ${this._application.name} <${(config.name ? config.name : "input_" + i+1)}>`;
@@ -312,7 +310,7 @@ export default class CliTool {
             if (config.default) input += ` [${config.default}]`; 
             console.log(input);
         }
-        console.log(`\t ${this._application.name} \t-h | --help \t This text`);
+        
         console.log('\n');
     }
 
