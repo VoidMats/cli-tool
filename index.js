@@ -10,10 +10,6 @@ const __filename = path.basename(__dirname);
 
 /**
  * TODO 
- * - Validate options
- * - Write help text
- *    - Write options text
- *    - Write usage text
  * - Remove all exceptions. Replace with process.exit(this._exitCode) 
  * - Check for required flags
  * - check for required inputs
@@ -27,11 +23,14 @@ const __filename = path.basename(__dirname);
  * - Write test for help text
  * - Split tests into boolean, string, number
  * - Add argument type Date
- * - Add argument type Url
  * - Add option case sensative
  * - Add function verbose
- * - Write README
  **/
+
+// TODO write README
+// TODO write usage text 
+// TODO Remove all excpetions
+// TODO Add argument type Date
 
 /**
  * 
@@ -43,7 +42,7 @@ export default class CliTool {
      * @param { String } description
      * @param { Object } options 
      */
-    constructor(description, options = {}) {
+    constructor(description = "", options = {}) {
         this._description = description;
         this._options = {
             disableColors: (process.env.NODE_DISABLE_COLORS) ? process.env.NODE_DISABLE_COLORS : false,
@@ -63,13 +62,13 @@ export default class CliTool {
         this._settings = {
             verbose: false
         }
-        this._POSSIBLE_TYPES = [
+        this._POSSIBLE_TYPES = Object.freeze([
             "string",
             "boolean",
             "number",
             "path",
             "url"
-        ];
+        ]);
 
         if (this._options.detectPackage) this._loadPackageJson();
     }
@@ -88,16 +87,37 @@ export default class CliTool {
      * @param { Object } config 
      */
     configureFlags(config) {
-        console.log("trigger config flags")
         this._configFlags = {};
         for (let [flagKey, flagValue] of Object.entries(config)) {
             let updatedFlagValue = {}
-            for (const [attr, value] of Object.entries(flagValue)) {
-                if (attr === "alias" && value.startsWith('-') ) value.slice(1);
-                updatedFlagValue[attr] = value;
+            for (const [attribute, value] of Object.entries(flagValue)) {
+                const attr = attribute.toLowerCase();
+                switch(attr) {
+                    case "alias":
+                        if (value.startsWith('-')) updatedFlagValue[attr] = value.slice(1);
+                        else updatedFlagValue[attr] = value;
+                        break;
+                    case "required":
+                        const boolean = this._validateBoolean(value);
+                        updatedFlagValue[attr] = boolean;
+                        break;
+                    case "type":
+                        if (!this._POSSIBLE_TYPES.includes(value.toLowerCase())) {
+                            console.error(`Flag contain a 'type' (${attr}) which are not supported by the cli-tool.`);
+                            process.exit(this._exitCode);
+                        }
+                        updatedFlagValue[attr] = value.toLowerCase();
+                        break;
+                    case "description":
+                    case "default":
+                        updatedFlagValue[attr] = value;
+                        break;
+                    default:
+                        continue;
+                }
             }
+            // Check that the config at least have a valid 'type'  
             if (!Object.keys(updatedFlagValue).includes("type")) throw new Error(`The flag must belong to a type. Possible types are '${this._POSSIBLE_TYPES.join(", ")}'`);
-            if (!this._POSSIBLE_TYPES.includes(updatedFlagValue.type)) throw new Error(`Flag contain a type which are not supported by the tool. `);
             this._configFlags[flagKey] = updatedFlagValue;
         }
     }
@@ -134,7 +154,7 @@ export default class CliTool {
         if (!Object.keys(this._configInputs).length && configInput) this.configureInputs(configInput);
         if (!Object.keys(this._configFlags).length && configFlag) this.configureFlags(configFlag);
         // Done with configuration. Parse arguments and validate them
-        const parsed = argvParser(this._argv, { boolean: true });
+        const parsed = argvParser(this._argv, { string: true });
         this._inputs = Array.from(parsed._);
         delete parsed._;
         this._flags = parsed;
@@ -171,11 +191,10 @@ export default class CliTool {
                 }
             }
             const value = this._correctValue(conf.type, this._flags[flag]);
-            if (value) validatedFlags[flag] = value; 
+            if (value !== undefined) validatedFlags[flag] = value; 
         }
         this._flags = validatedFlags;
         if (!this._options.detectUnknown) {
-            console.log("trigger Unknown")
             for (const [flag, value] of Object.entries(this._flags)) {
                 if (!this._configFlags[flag]) {
                     delete this._flags[flag];
@@ -210,7 +229,6 @@ export default class CliTool {
             const value = this._correctValue(config.type, this._inputs[i]);
             if (value) validateInputs.push(value);
         }
-        console.log(validateInputs)
         this._inputs = validateInputs;
         if (!this._options.detectUnknown) {
             this._inputs.forEach(i => {
@@ -234,15 +252,11 @@ export default class CliTool {
         if (['', null, undefined].includes(value)) return undefined;
         switch(type) {
             case "string":
+                return String(value);
             case "number":
-                return value;
+                return Number(value);
             case "boolean":
-                try {
-                    return JSON.parse((value.toLowerCase()));
-                } catch (error) {
-                    console.error(error.message);
-                    process.exit(this._exitCode);
-                }
+                return this._validateBoolean(value);
             case "path":
                 const pathObj = path.parse(value);
                 pathObj["complete"] = value;
@@ -251,6 +265,15 @@ export default class CliTool {
                 return new URL(value);
             default:
                 return value;
+        }
+    }
+
+    _validateBoolean(value) {
+        try {
+            return JSON.parse((value.toLowerCase()));
+        } catch (error) {
+            console.error(`Boolean value got an unvalid value: ${value}`);
+            process.exit(this._exitCode);
         }
     }
 
@@ -310,7 +333,6 @@ export default class CliTool {
             if (config.default) input += ` [${config.default}]`; 
             console.log(input);
         }
-        
         console.log('\n');
     }
 

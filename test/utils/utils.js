@@ -5,7 +5,13 @@ const run = (str) => {
 
 const resetProcessArgv = (argv = []) => {
     const array = process.argv.slice(0, 2);
-    return Array.from(array.concat(argv));
+    process.argv = Array.from(array.concat(argv));
+}
+
+const addConfig = (original, config = {}) => {
+    const modefiedConfig = JSON.parse(JSON.stringify(original));
+    for (const [k, v] of Object.entries(config)) modefiedConfig[k] = v;
+    return modefiedConfig;
 }
 
 const DEFAULT_FLAGS = {
@@ -62,6 +68,7 @@ const DEFAULT_INPUTS = [
 export {
     run,
     resetProcessArgv,
+    addConfig,
     DEFAULT_FLAGS,
     DEFAULT_INPUTS
 }
