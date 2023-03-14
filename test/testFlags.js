@@ -12,9 +12,11 @@ const checkInput = (cli, t) => {
 
 let index = 1;
 
-tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknownFlags: false} ==", async (t) => {
+tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknown: false} ==", async (t) => {
     let msg = "";
     let input = [];
+
+    // Test for flag type 'string' 
 
     input = ["--firstString=SomeText"];
     msg = ` ${index} ONE STRING FLAG / input: ${input.join(' ')}`;
@@ -77,6 +79,7 @@ tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknownFlags: false} ==",
         resetProcessArgv(input); 
         const cli = new CliTool().parse(null, DEFAULT_FLAGS);
         checkInput(cli, t2);
+        console.log(cli._options)
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
         t2.same(cli.flags, { firstString: "FirstText" }, "cli.flags contain correct values", cli.flags);
     });
@@ -435,21 +438,77 @@ tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknownFlags: false} ==",
 
 });
 
-tap.test("== Check incomming config will set lower case ==", async (t) => {
-    resetProcessArgv(["--test"]);
-    const cli = new CliTool();
-    cli.configureFlags({
-        Test: {
-            Type: "string"
-        },
-        test2: {
-            type: "string"
-        }
+tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknown: true} ==", async (t) => {
+    let msg = "";
+    let input = [];
+
+    input = ["--firstString=FirstText", "--secondString=SecondText"];
+    msg = ` ${index} TWO STRING FLAGS / input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool(null, { detectUnknown: true }).parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstString: "FirstText", secondString: "SecondText" }, "cli.flags contain correct values", cli.flags);
     });
-    t.ok(Object.keys(cli._configFlags.test).includes("type"), "");
+
+    input = ["--firstNumber=2", "--secondNumber=4"];
+    msg = ` ${index} TWO NUMBER FLAG # input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input);
+        const cli = new CliTool(null, { detectUnknown: true }).parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstNumber: 2, secondNumber: '4' }, "cli.flags contain correct values", cli.flags);
+    });
+
+    input = ["--firstBoolean=true", "--secondBoolean=false"];
+    msg = ` ${index} TWO BOOLEAN FLAG / input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool(null, { detectUnknown: true }).parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstBoolean: true, secondBoolean: "false" }, "cli.flags contain correct values", cli.flags);
+    });
+
+    input = ["--firstPath=./test", "--secondPath=./test/utils"];
+    msg = ` ${index} TWO PATH FLAGS / input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool(null, { detectUnknown: true }).parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { 
+            firstPath: {
+                root: "",            
+                dir: ".",            
+                base: "test",        
+                ext: "",             
+                name: "test",        
+                complete: "./test"
+            },
+            secondPath: "./test/utils"
+        }, "cli.flags contain correct values", cli.flags);
+    });
+
+    input = ["--firstUrl", "https://google.com", "--secondUrl", "https://www.google.com/"];
+    msg = ` ${index} TWO URL FLAG / input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input);
+        const cli = new CliTool(null, { detectUnknown: true }).parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstUrl: new URL("https://google.com"), secondUrl: "https://www.google.com/" }, "cli.flags contain correct values", cli.flags);
+    });
 });
 
-tap.test("== Check if flag is missing when config require it ==", async (t) => {
+tap.test("== Check for required flags ==", async (t) => {
     let index = 1;
     let msg = "";
 
@@ -472,18 +531,11 @@ tap.test("== Check if flag is missing when config require it ==", async (t) => {
     });
 });
 
+tap.test("== ", async (t) => {
+    
+})
+
 /*
-tap.test("", async (t) => {
-    //process.argv = [...process.argv, "--flagString=asdas"];
-    resetProcessArgv();
-    console.log(process.argv)
-    const cli = new CliTool();
-    cli.configureFlags({
-        test: {
-            type: "string"
-        }
-    });
-});
 
 // NB Because the second number does not have any config it ill be return as string
         //t2.same(cli.flags, { firstnumber: 2, secondnumber: '4' }, "cli.flags contain correct values", cli.flags);

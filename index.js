@@ -47,7 +47,7 @@ export default class CliTool {
         this._options = {
             disableColors: (process.env.NODE_DISABLE_COLORS) ? process.env.NODE_DISABLE_COLORS : false,
             detectPackage: true,
-            detectUnknown: true,
+            detectUnknown: false,
             exitCode: 0,
             ...options
         }
@@ -193,14 +193,16 @@ export default class CliTool {
             const value = this._correctValue(conf.type, this._flags[flag]);
             if (value !== undefined) validatedFlags[flag] = value; 
         }
-        this._flags = validatedFlags;
-        if (!this._options.detectUnknown) {
+        if (this._options.detectUnknown) {
             for (const [flag, value] of Object.entries(this._flags)) {
                 if (!this._configFlags[flag]) {
-                    delete this._flags[flag];
+                    validatedFlags[flag] = value;
                 }
             }
         }
+        //console.log(this._flags)
+        //console.log(validatedFlags)
+        this._flags = validatedFlags;
     }
 
     _validateInputs() {
