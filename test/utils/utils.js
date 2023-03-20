@@ -32,7 +32,7 @@ const DEFAULT_FLAGS = {
     },
     firstPath: {
         type: "path",
-        alias: "-f",
+        alias: "p",
         description: "Description for a path"
     },
     firstUrl: {
