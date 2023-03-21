@@ -14,6 +14,11 @@ const addConfig = (original, config = {}) => {
     return modefiedConfig;
 }
 
+const checkInput = (cli, t) => {
+    t.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
+    t.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+}
+
 const DEFAULT_FLAGS = {
     firstString: {
         type: "string",
@@ -69,6 +74,7 @@ export {
     run,
     resetProcessArgv,
     addConfig,
+    checkInput,
     DEFAULT_FLAGS,
     DEFAULT_INPUTS
 }

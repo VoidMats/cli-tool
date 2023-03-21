@@ -18,7 +18,6 @@ const __filename = path.basename(__dirname);
  * - Write test for detectPackage
  * - Write test for flags without value as boolean
  * - Write test for default values 
- * - Write test for alias
  * - Write test for flags with next incomming input
  * - Write test for help text
  * - Split tests into boolean, string, number
@@ -108,8 +107,11 @@ export default class CliTool {
                         }
                         updatedFlagValue[attr] = value.toLowerCase();
                         break;
-                    case "description":
                     case "default":
+                        if (updatedFlagValue.type) updatedFlagValue[attr] = this._correctValue(updatedFlagValue.type, value);
+                        else updatedFlagValue[attr] = value;
+                        break;
+                    case "description":
                         updatedFlagValue[attr] = value;
                         break;
                     default:

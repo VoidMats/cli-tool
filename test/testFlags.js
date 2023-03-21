@@ -1,14 +1,14 @@
 import process from "node:process";
 import tap from "tap";
 import CliTool from "../index.js";
-import { DEFAULT_FLAGS, resetProcessArgv, addConfig } from "./utils/utils.js";
+import { 
+    DEFAULT_FLAGS, 
+    resetProcessArgv, 
+    addConfig,
+    checkInput
+} from "./utils/utils.js";
 
 const SAVED_PROCESS_ARGV = Array.from(process.argv);
-
-const checkInput = (cli, t) => {
-    t.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
-    t.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
-}
 
 let index = 1;
 
@@ -930,6 +930,17 @@ tap.test("== TEST FOR SUCCESSFUL FLAGS WITH ALIAS options: {detectUnknown: false
         checkInput(cli, t2);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
         t2.same(cli.flags, { firstUrl: new URL("https://google.com") }, "cli.flags contain correct values", cli.flags);
+    });
+
+    input = ["u", "https://google.com"];
+    msg = ` ${index} ONE URL FLAG / input: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool().parse(null, DEFAULT_FLAGS);
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 0, "correct number of flags", cli.flags);
+        t2.same(cli.flags, {}, "cli.flags contain correct values", cli.flags);
     });
 
     input = ["-u=https://google.com", "-l=https://www.google.com/"];

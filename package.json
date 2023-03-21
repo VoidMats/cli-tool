@@ -8,7 +8,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "test": "clear && tap test/testFlags.js --reporter=specy"
+    "test": "clear && tap test/testDefaultValue.js --reporter=specy"
   },
   "repository": {
     "type": "git",
