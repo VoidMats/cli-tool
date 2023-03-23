@@ -13,7 +13,6 @@ const __filename = path.basename(__dirname);
  * - Remove all exceptions. Replace with process.exit(this._exitCode) 
  * - Check for required flags
  * - check for required inputs
- * - Check that config.type = number actually is a number
  * - Write test for mixed input and flags
  * - Write test for detectPackage
  * - Write test for flags without value as boolean
@@ -155,7 +154,6 @@ export default class CliTool {
     parse(configInput, configFlag) {
         if (!Object.keys(this._configInputs).length && configInput) this.configureInputs(configInput);
         if (!Object.keys(this._configFlags).length && configFlag) this.configureFlags(configFlag);
-        // Done with configuration. Parse arguments and validate them
         const parsed = argvParser(this._argv, { string: true });
         this._inputs = Array.from(parsed._);
         delete parsed._;
@@ -173,8 +171,8 @@ export default class CliTool {
                 if (!this._flags[flag]) this._flags[flag] = this._flags[conf.alias];
                 delete this._flags[conf.alias];
             }
-            if (conf.default && !this._flags[flag]) {
-                this._flags[flag] = conf.default;
+            if (conf.hasOwnProperty("default") && !this._flags[flag]) {
+                this._flags[flag] = this._correctValue(conf.type, conf.default);
             }
             if (conf.required && !this._flags[flag]) {
                 console.log(`Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
@@ -193,7 +191,7 @@ export default class CliTool {
                 }
             }
             const value = this._correctValue(conf.type, this._flags[flag]);
-            if (value !== undefined) validatedFlags[flag] = value; 
+            if (value !== undefined) validatedFlags[flag] = value;
         }
         if (this._options.detectUnknown) {
             for (const [flag, value] of Object.entries(this._flags)) {
@@ -202,8 +200,6 @@ export default class CliTool {
                 }
             }
         }
-        //console.log(this._flags)
-        //console.log(validatedFlags)
         this._flags = validatedFlags;
     }
 
@@ -274,7 +270,8 @@ export default class CliTool {
 
     _validateBoolean(value) {
         try {
-            return JSON.parse((value.toLowerCase()));
+            if (typeof value === "string" || value instanceof String) return JSON.parse(value.toLowerCase());
+            return JSON.parse(value);
         } catch (error) {
             console.error(`Boolean value got an unvalid value: ${value}`);
             process.exit(this._exitCode);

@@ -106,16 +106,16 @@ tap.test("== TEST FOR SUCCESSFUL DEFAULT VALUES ==", async (t) => {
     await t.test(msg, async (t2) => {
         resetProcessArgv(input); 
         const cli = new CliTool().parse(null, {
-            firstNumber: {
+            firstBoolean: {
                 type: "boolean",
-                alias: 'n',
+                alias: 'b',
                 default: "true",
                 description: "Description for first number"
             }
         });
         checkInput(cli, t2);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { firstNumber: true }, "cli.flags contain correct values", cli.flags);
+        t2.same(cli.flags, { firstBoolean: true }, "cli.flags contain correct values", cli.flags);
     });
 
     msg = ` ${index} - DEFAULT BOOLEAN FLAG WITH BOOLEAN VALUE / argv: ${input.join(' ')}`;
@@ -132,7 +132,7 @@ tap.test("== TEST FOR SUCCESSFUL DEFAULT VALUES ==", async (t) => {
             secondBoolean: {
                 type: "boolean",
                 alias: 'l',
-                default: "true",
+                default: true,
                 description: "Description for second number"
             }
         });
