@@ -3,6 +3,8 @@ import tap from "tap";
 import CliTool from "../index.js";
 import { resetProcessArgv, DEFAULT_CONFIG, DEFAULT_INPUT } from "./utils/utils.js";
 
+tap.test("== ", )
+
 tap.test("== General test ==", async (t) => {
     let index = 1;
     let msg = "";
