@@ -1,4 +1,5 @@
 import process from "node:process";
+import path from "node:path";
 import tap from "tap";
 import CliTool from "../index.js";
 import { 
@@ -151,7 +152,7 @@ tap.test("== TEST FOR SUCCESSFUL DEFAULT VALUES ==", async (t) => {
             firstPath: {
                 type: "path",
                 alias: 'p',
-                default: "./test/file.txt",
+                default: "./test/testDefaultValue.js",
                 description: "Description for first path"
             }
         });
@@ -159,12 +160,46 @@ tap.test("== TEST FOR SUCCESSFUL DEFAULT VALUES ==", async (t) => {
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
         t2.same(cli.flags, { firstPath: {
             root: "",            
-            dir: ".",            
-            base: "test",        
-            ext: "txt",             
-            name: "test",        
-            complete: "./test/file.txt"
+            dir: "./test",            
+            base: "testDefaultValue.js",        
+            ext: ".js",             
+            name: "testDefaultValue",        
+            complete: "./test/testDefaultValue.js"
         }}, "cli.flags contain correct values", cli.flags);
     });
 
+    /*
+    msg = ` ${index} - DEFAULT PATH FLAG WITH PATH OBJECT / argv: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool().parse(null, {
+            firstPath: {
+                type: "path",
+                alias: 'p',
+                default: path.parse("./test/testDefaultValue.js"),
+                description: "Description for first path"
+            }
+        });
+    });
+    */
+
+    // Test default value for flag type 'url'
+
+    msg = ` ${index} - DEFAULT PATH FLAG WITH STRING VALUE / argv: ${input.join(' ')}`;
+    index++;
+    await t.test(msg, async (t2) => {
+        resetProcessArgv(input); 
+        const cli = new CliTool().parse(null, {
+            firstUrl: {
+                type: "url",
+                alias: 'u',
+                default: "https://google.com",
+                description: "Description for first url"
+            }
+        });
+        checkInput(cli, t2);
+        t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
+        t2.same(cli.flags, { firstUrl: new URL("https://google.com") }, "cli.flags contain correct values", cli.flags);
+    });
 });

@@ -10,7 +10,6 @@ const __filename = path.basename(__dirname);
 
 /**
  * TODO 
- * - Remove all exceptions. Replace with process.exit(this._exitCode) 
  * - Check for required flags
  * - check for required inputs
  * - Write test for mixed input and flags
@@ -19,7 +18,6 @@ const __filename = path.basename(__dirname);
  * - Write test for default values 
  * - Write test for flags with next incomming input
  * - Write test for help text
- * - Split tests into boolean, string, number
  * - Add argument type Date
  * - Add option case sensative
  * - Add function verbose
@@ -101,15 +99,11 @@ export default class CliTool {
                         break;
                     case "type":
                         if (!this._POSSIBLE_TYPES.includes(value.toLowerCase())) {
-                            console.error(`Flag contain a 'type' (${attr}) which are not supported by the cli-tool.`);
-                            process.exit(this._exitCode);
+                            this._exit(`Flag contain a 'type' (${attr}) which are not supported by the cli-tool.`);
                         }
                         updatedFlagValue[attr] = value.toLowerCase();
                         break;
                     case "default":
-                        if (updatedFlagValue.type) updatedFlagValue[attr] = this._correctValue(updatedFlagValue.type, value);
-                        else updatedFlagValue[attr] = value;
-                        break;
                     case "description":
                         updatedFlagValue[attr] = value;
                         break;
@@ -172,15 +166,23 @@ export default class CliTool {
                 delete this._flags[conf.alias];
             }
             if (conf.hasOwnProperty("default") && !this._flags[flag]) {
-                this._flags[flag] = this._correctValue(conf.type, conf.default);
+                this._flags[flag] = conf.default;
             }
             if (conf.required && !this._flags[flag]) {
                 console.log(`Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
                 this.showHelp();
             }
-            if (conf.type === "path" && this._flags[flag] && !fs.existsSync(this._flags[flag])) {
-                console.log(`Flag '${flag}' has none valid path. Please refer to --help or -h.\n`);
-                this.showHelp();
+            if (conf.type === "path" && this._flags[flag]) {
+                if (typeof this._flags[flag] === "string" || this._flags[flag] instanceof String) {
+                    if (!fs.existsSync(this._flags[flag])) {
+                        console.log(`Flag '${flag}' has none valid path '${this._flags[flag]}'. Please refer to --help or -h. \n`);
+                        this.showHelp();
+                    }
+                } else {
+                    console.log(`Default flag value for '${flag}' has to be a string. Please change config for flags.`)
+                    process.exit()
+                }
+                
             }
             if (conf.type === "url" && this._flags[flag]) {
                 try {
@@ -273,8 +275,7 @@ export default class CliTool {
             if (typeof value === "string" || value instanceof String) return JSON.parse(value.toLowerCase());
             return JSON.parse(value);
         } catch (error) {
-            console.error(`Boolean value got an unvalid value: ${value}`);
-            process.exit(this._exitCode);
+            this._exit(`Boolean value got an unvalid value: ${value}`);
         }
     }
 
@@ -299,10 +300,10 @@ export default class CliTool {
         if (!this._options.disableColors) {
             console.log("\x1b[45m Usage: \x1b[0m", '\n'); // Magneta
             console.log(this._description, '\n');
-            console.log(`\t $\x1b[35m node ${this._application.name} \x1b[36m<commands>\x1b[90m [options] \x1b[0m\n`);
-            console.log("\x1b[46m Commands: \x1b[0m"); // Cyan
+            console.log(`\t $\x1b[35m node ${this._application.name} \x1b[36m<commands>\x1b[90m [options] \x1b[0m \n`);
+            console.log("\n\x1b[46m Commands: \x1b[0m"); // Cyan
             this._createTextInputs();
-            console.log("\x1b[100m Options: \x1b[0m"); // Grey
+            console.log("\n\x1b[100m Options: \x1b[0m"); // Grey
             this._createTextOptions();
         } else {
             console.log("Usage: ");
@@ -337,9 +338,14 @@ export default class CliTool {
         console.log('\n');
     }
 
+    _exit(message, code = this._options.exitCode) {
+        console.log(message);
+        process.exit(code)
+    }
+
     showHelp() {
         this._createHelpText();
-        process.exit(this._exitCode);
+        process.exit(this._options.exitCode);
     }
 
     verbose() {
