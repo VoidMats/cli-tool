@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch utils script",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/test/utils/script.js",
+            "args": [
+                "--test"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "16.17.0",
+            "name": "Launch test node-tap current file",
+            "windows": {
+                "envFile": "${workspaceFolder}\\test\\utils\\.env",
+                "program": "${workspaceFolder}\\${relativeFile}",
+                "cwd": "${workspaceFolder}"
+            },
+            "linux": {
+                "envFile": "${workspaceFolder}/test/utils/.env",
+                "program": "${workspaceFolder}/${relativeFile}",
+                "cwd": "${workspaceFolder}"
+            }
+        },
+    ]
+}
