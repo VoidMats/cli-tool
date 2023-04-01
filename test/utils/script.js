@@ -7,14 +7,9 @@ console.log(DEFAULT_FLAGS);
 console.log(DEFAULT_INPUTS);
 
 const cli = new CliTool("This is a help script to check performance of the cli-tool.");
-cli.configureFlags({
-    firstPath: {
-        type: "path",
-        default: "../testDefaultValue.js"
-    }
-});
-cli.parse();
+cli.parse(DEFAULT_INPUTS);
 console.log(cli._options);
+console.log(cli)
 
 console.log("== This the inputs ==");
 console.log(cli.inputs);

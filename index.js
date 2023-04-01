@@ -229,13 +229,11 @@ export default class CliTool {
                 }
             }
             const value = this._correctValue(config.type, this._inputs[i]);
-            if (value) validateInputs.push(value);
+            if (value !== undefined) validateInputs.push(value);
         }
         this._inputs = validateInputs;
         if (!this._options.detectUnknown) {
-            this._inputs.forEach(i => {
-                if (!this._configInputs[i]) this._inputs.splice(i, 1);
-            });
+            this._inputs.slice(this._configInputs.length-1, (this._inputs.length - this._configInputs.length));
         }
     }
 

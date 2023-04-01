@@ -1,7 +1,5 @@
-
-const run = (str) => {
-
-}
+import CliTool from "../../index.js";
+import { spawn } from "child_process";
 
 const resetProcessArgv = (argv = []) => {
     const array = process.argv.slice(0, 2);
@@ -17,6 +15,34 @@ const addConfig = (original, config = {}) => {
 const checkInput = (cli, t) => {
     t.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
     t.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
+}
+
+const checkFlags = (cli, t) => {
+    t.equal(Object.keys(cli.flags).length, 0, "correct number of flags", cli.flags);
+    t.same(cli.flags, {}, "cli.flags contain correct value(s)", cli.flags);
+}
+
+const runRequired = async (t, index, testCase) => {
+    await t.test(` ${index} - ${testCase.message}`, async (tt) => {
+        resetProcessArgv(testCase.input);
+        const proc = spawn(new CliTool().parse(testCase.config.input, testCase.config.flags), testCase.input)
+        proc.on("error", (error) => {
+            tt.error(error);
+        });
+        proc.on("close", (code) => {
+            tt.equals(code, 1, "Flag 'firstString' is missing in cli command. Please refer to --help or -h.");
+        });
+    });
+}
+
+const runInput = async (t, index, testCase) => {
+    await t.test(` ${index} - ${testCase.message}`, async (tt) => {
+        resetProcessArgv(testCase.input);
+        const cli = new CliTool().parse(testCase.config.input, testCase.config.flags);
+        checkFlags(cli, tt);
+        tt.equal(cli.inputs.length, testCase.result.length, "correct number of inputs", cli.input);
+        tt.same(cli.inputs, testCase.result, "cli.input contain correct values");
+    });
 }
 
 const DEFAULT_FLAGS = {
@@ -71,10 +97,12 @@ const DEFAULT_INPUTS = [
 ]
 
 export {
-    run,
     resetProcessArgv,
     addConfig,
     checkInput,
+    checkFlags,
+    runRequired,
+    runInput,
     DEFAULT_FLAGS,
     DEFAULT_INPUTS
 }
