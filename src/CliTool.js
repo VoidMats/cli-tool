@@ -4,33 +4,11 @@ import path from "node:path";
 import fs from "node:fs";
 import { URL } from "node:url";
 import argvParser from "minimist";
+import { CliException, CliHelpException } from "./CliExceptions.js";
 
 const __dirname = url.fileURLToPath(import.meta.url);
 const __filename = path.basename(__dirname);
 
-/**
- * TODO 
- * - Check for required flags
- * - check for required inputs
- * - Write test for mixed input and flags
- * - Write test for detectPackage
- * - Write test for flags without value as boolean
- * - Write test for default values 
- * - Write test for flags with next incomming input
- * - Write test for help text
- * - Add argument type Date
- * - Add option case sensative
- * - Add function verbose
- **/
-
-// TODO write README
-// TODO write usage text 
-// TODO Remove all excpetions
-// TODO Add argument type Date
-
-/**
- * 
- */
 export default class CliTool {
 
     /**
@@ -67,6 +45,7 @@ export default class CliTool {
         ]);
 
         if (this._options.detectPackage) this._loadPackageJson();
+        return this;
     }
 
     /**
@@ -99,7 +78,7 @@ export default class CliTool {
                         break;
                     case "type":
                         if (!this._POSSIBLE_TYPES.includes(value.toLowerCase())) {
-                            this._exit(`Flag contain a 'type' (${attr}) which are not supported by the cli-tool.`);
+                            throw new CliException(this._options.exitCode, `Flag contain a 'type' (${attr}) which are not supported by the cli-tool.`);
                         }
                         updatedFlagValue[attr] = value.toLowerCase();
                         break;
@@ -169,18 +148,18 @@ export default class CliTool {
                 this._flags[flag] = conf.default;
             }
             if (conf.required && !this._flags[flag]) {
-                console.log(`Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
-                this.showHelp();
+                throw new CliException(this._options.exitCode, `Flag '${flag}' is missing in cli command. Please refer to --help or -h. \n`);
             }
             if (conf.type === "path" && this._flags[flag]) {
                 if (typeof this._flags[flag] === "string" || this._flags[flag] instanceof String) {
                     if (!fs.existsSync(this._flags[flag])) {
-                        console.log(`Flag '${flag}' has none valid path '${this._flags[flag]}'. Please refer to --help or -h. \n`);
-                        this.showHelp();
+                        throw new CliHelpException(
+                            this._options.exitCode,
+                            `Flag '${flag}' has none valid path '${this._flags[flag]}'. Please refer to --help or -h. \n`
+                            )
                     }
                 } else {
-                    console.log(`Default flag value for '${flag}' has to be a string. Please change config for flags.`)
-                    process.exit()
+                    throw new CliException(this._options.exitCode, `Default flag value for '${flag}' has to be a string. Please change config for flags.`);
                 }
                 
             }
@@ -273,7 +252,7 @@ export default class CliTool {
             if (typeof value === "string" || value instanceof String) return JSON.parse(value.toLowerCase());
             return JSON.parse(value);
         } catch (error) {
-            this._exit(`Boolean value got an unvalid value: ${value}`);
+            throw new CliException(this._options.exitCode, `Boolean value got an unvalid value: ${value}`);
         }
     }
 

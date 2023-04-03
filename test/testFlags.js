@@ -1,14 +1,12 @@
 import process from "node:process";
 import tap from "tap";
-import CliTool from "../index.js";
+import { CliTool } from "../src/index.js";
 import { 
     DEFAULT_FLAGS, 
     resetProcessArgv, 
     addConfig,
     checkInput
 } from "./utils/utils.js";
-
-const SAVED_PROCESS_ARGV = Array.from(process.argv);
 
 let index = 1;
 
@@ -79,7 +77,6 @@ tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknown: false} ==", asyn
         resetProcessArgv(input); 
         const cli = new CliTool().parse(null, DEFAULT_FLAGS);
         checkInput(cli, t2);
-        console.log(cli._options)
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
         t2.same(cli.flags, { firstString: "FirstText" }, "cli.flags contain correct values", cli.flags);
     });
@@ -293,7 +290,7 @@ tap.test("== TEST FOR SUCCESSFUL FLAGS options: {detectUnknown: false} ==", asyn
         const cli = new CliTool().parse(null, config);
         checkInput(cli, t2);
         t2.equal(Object.keys(cli.flags).length, 2, "correct number of flags", cli.flags);
-        t2.same(cli.flags, { 
+        t2.strictSame(cli.flags, { 
             firstPath: {
                 root: "",            
                 dir: ".",            

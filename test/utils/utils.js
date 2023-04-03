@@ -1,4 +1,4 @@
-import CliTool from "../../index.js";
+import { CliTool } from "../../src/index.js";
 import { spawn } from "child_process";
 
 const resetProcessArgv = (argv = []) => {

@@ -1,11 +1,7 @@
-import process from "node:process";
-import path from "node:path";
 import tap from "tap";
-import CliTool from "../index.js";
+import { CliTool } from "../src/index.js";
 import { 
-    DEFAULT_FLAGS,
     resetProcessArgv,
-    addConfig,
     checkInput
 } from "./utils/utils.js";
 

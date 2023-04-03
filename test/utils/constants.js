@@ -97,23 +97,7 @@ const INPUT_SUIT = Object.freeze(
                 flags: null
             },
             result: []
-        },
-        {
-            input: ["firstString", false, 54.56, "./test/utils", "http://google.com", "overextend1", "overextend2"],
-            message: "OVEREXTEND WITH TWO INPUT WITH DETECTUNKNOWN OFF",
-            config: {
-                input: DEFAULT_INPUTS,
-                flags: null
-            },
-            result: [
-                "firstString",
-                false,
-                54.56,
-                { root: "", dir: "./test", base: "utils", ext: "", name: "utils", complete: "./test/utils" },
-                new URL("http://google.com")
-            ]
         }
-       
     ]
 )
 

@@ -1,9 +1,13 @@
 import process from "node:process";
 import tap from "tap";
-import CliTool from "../index.js";
-import { resetProcessArgv, DEFAULT_CONFIG, DEFAULT_INPUT } from "./utils/utils.js";
+import { CliTool } from "../src/index.js";
+import { resetProcessArgv, DEFAULT_FLAGS, DEFAULT_INPUTS } from "./utils/utils.js";
 
-tap.test("== ", )
+tap.test("== ", async (t) => {
+    let index = 1;
+
+    
+})
 
 tap.test("== General test ==", async (t) => {
     let index = 1;
@@ -14,8 +18,8 @@ tap.test("== General test ==", async (t) => {
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["-h"]);
         const cli = new CliTool("Some description");
-        cli.configureFlags(DEFAULT_CONFIG);
-        cli.configureInputs(DEFAULT_INPUT);
+        cli.configureFlags(DEFAULT_FLAGS);
+        cli.configureInputs(DEFAULT_INPUTS);
         //t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         //t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         //t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -28,7 +32,7 @@ tap.test("== General test ==", async (t) => {
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["--help"]);
         const cli = new CliTool();
-        cli.configureFlags(DEFAULT_CONFIG);
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);
@@ -40,8 +44,7 @@ tap.test("== General test ==", async (t) => {
     t.test(msg, async (t2) => {
         process.argv = resetProcessArgv(["-h"]);
         const cli = new CliTool("Some description");
-        cli.configureFlags(DEFAULT_CONFIG);
-        console.log(cli.flags)
+        cli.configureFlags(DEFAULT_FLAGS);
         t2.equal(cli.inputs.length, 0, "correct number of inputs", cli.inputs);
         t2.same(cli.inputs, [], "cli.inputs contain correct values", cli.inputs);
         t2.equal(Object.keys(cli.flags).length, 1, "correct number of flags", cli.flags);

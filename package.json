@@ -2,10 +2,14 @@
   "name": "cli-tool",
   "version": "0.0.1",
   "description": "",
+  "keywords": [
+    "cli",
+    "argv"
+  ],
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "test": "clear && tap test/test*.js --reporter=specy"
@@ -23,7 +27,8 @@
   },
   "homepage": "https://github.com/VoidMats/cli-tool#readme",
   "devDependencies": {
-    "tap": "^16.3.2"
+    "tap": "^16.3.2",
+    "tap-parser": "^12.0.1"
   },
   "dependencies": {
     "minimist": "^1.2.8"

@@ -1,6 +1,6 @@
 import process from "node:process";
 import tap from "tap";
-import CliTool from "../index.js";
+import { CliTool } from "../src/index.js";
 import { 
     DEFAULT_FLAGS, 
     resetProcessArgv, 

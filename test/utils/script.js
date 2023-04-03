@@ -1,5 +1,5 @@
 import process from "node:process";
-import CliTool from "../../index.js";
+import { CliTool } from "../../src/index.js";
 import { DEFAULT_FLAGS, DEFAULT_INPUTS } from "./utils.js";
 
 console.log(process.argv);
