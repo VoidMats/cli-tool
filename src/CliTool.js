@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { URL } from "node:url";
 import argvParser from "minimist";
 import { CliException, CliHelpException } from "./CliExceptions.js";
+import CliHelp from "./CliHelp.js";
 
 const __dirname = url.fileURLToPath(import.meta.url);
 const __filename = path.basename(__dirname);
@@ -13,6 +14,7 @@ export default class CliTool {
 
     /**
      * 
+     * @constructor
      * @param { String } description
      * @param { Object } options 
      */
@@ -124,6 +126,12 @@ export default class CliTool {
         }
     }
 
+    /**
+     * 
+     * @param { Object } configInput 
+     * @param { Object } configFlag 
+     * @returns 
+     */
     parse(configInput, configFlag) {
         if (!Object.keys(this._configInputs).length && configInput) this.configureInputs(configInput);
         if (!Object.keys(this._configFlags).length && configFlag) this.configureFlags(configFlag);
@@ -134,6 +142,7 @@ export default class CliTool {
         this._validateForHelp();
         this._validateFlags();
         this._validateInputs();
+        this._help = CliHelp(this).createHelpText();
         return this;
     }
 
@@ -218,7 +227,14 @@ export default class CliTool {
 
     _validateForHelp() {
         for (const [flag, value] of Object.entries(this._flags)) {
-            if (flag === "h" || flag === "help") this.showHelp();
+            if (flag === "h" || flag === "help") {
+                throw new CliHelpException(
+                    this._options.exitCode, 
+                    `Default flag value for '${flag}' has to be a string. Please change config for flags.`,
+                    this._help
+                );
+
+            }
         }
     }
 

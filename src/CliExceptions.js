@@ -23,10 +23,15 @@ class CliException extends Error {
     }
 }
 
+/**
+ * 
+ * @class
+ */
 class CliHelpException extends CliException {
 
     /**
      * 
+     * @constructor
      * @param { Number } code
      * @param { String } message
      * @param { Object } help
@@ -34,7 +39,7 @@ class CliHelpException extends CliException {
     constructor(code, message, help, ...params) {
         super(code, message, ...params);
         this.help = help;
-        console.log(this.help.toString());
+        console.log(this.help);
     }
 }
 
