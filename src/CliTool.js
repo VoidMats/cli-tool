@@ -142,7 +142,7 @@ export default class CliTool {
         this._validateForHelp();
         this._validateFlags();
         this._validateInputs();
-        this._help = CliHelp(this).createHelpText();
+        this._help = new CliHelp().createHelpText(this);
         return this;
     }
 
@@ -228,12 +228,7 @@ export default class CliTool {
     _validateForHelp() {
         for (const [flag, value] of Object.entries(this._flags)) {
             if (flag === "h" || flag === "help") {
-                throw new CliHelpException(
-                    this._options.exitCode, 
-                    `Default flag value for '${flag}' has to be a string. Please change config for flags.`,
-                    this._help
-                );
-
+                this.showHelp();
             }
         }
     }
@@ -337,7 +332,7 @@ export default class CliTool {
     }
 
     showHelp() {
-        this._createHelpText();
+        console.log(this._help);
         process.exit(this._options.exitCode);
     }
 

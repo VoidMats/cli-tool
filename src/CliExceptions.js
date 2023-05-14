@@ -1,13 +1,12 @@
 
 
 /**
- * 
+ * Some explaning text
  * @class
  */
 class CliException extends Error {
 
     /**
-     * 
      * @param { Number } code 
      * @param { String } message 
      */
@@ -18,19 +17,17 @@ class CliException extends Error {
         this.message = message;
         const frame = this.stack.split("\n")[1];
         const functionName = frame.split(" ")[5];
-        this.log = `[${this._timestamp}] [${functionName}] - ${this.message}`;
-        Error.captureStackTrace(this, this.constructor);
+        this.log = `[${this.timestamp}] [${functionName}] - ${this.message}`;
     }
 }
 
 /**
- * 
+ * Some explaning text
  * @class
  */
 class CliHelpException extends CliException {
 
     /**
-     * 
      * @constructor
      * @param { Number } code
      * @param { String } message
@@ -38,6 +35,7 @@ class CliHelpException extends CliException {
      */
     constructor(code, message, help, ...params) {
         super(code, message, ...params);
+        Error.captureStackTrace(this, this.constructor);
         this.help = help;
         console.log(this.help);
     }
