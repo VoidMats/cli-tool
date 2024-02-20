@@ -4,8 +4,8 @@ import path from "node:path";
 import fs from "node:fs";
 import { URL } from "node:url";
 import argvParser from "minimist";
-import { CliException, CliHelpException } from "./CliExceptions.js";
-import CliHelp from "./CliHelp.js";
+import { CliException, CliHelpException } from "./CliExceptions.mjs";
+import CliHelp from "./CliHelp.mjs";
 
 const __dirname = url.fileURLToPath(import.meta.url);
 const __filename = path.basename(__dirname);

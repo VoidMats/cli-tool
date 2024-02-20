@@ -17,7 +17,7 @@ class CliException extends Error {
         this.message = message;
         const frame = this.stack.split("\n")[1];
         const functionName = frame.split(" ")[5];
-        this.log = `[${this.timestamp}] [${functionName}] - ${this.message}`;
+        this.log = `${this.timestamp} - ${functionName} - ${this.message}`;
     }
 }
 

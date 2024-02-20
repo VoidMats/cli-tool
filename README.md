@@ -1,5 +1,8 @@
 # cli-tool
 
+This cli tool was to 
+
+
 ## Features
  * Parses arguments through mini
  * 
@@ -26,10 +29,12 @@ const cli = new CliTool("Description of command/script").parse(
 )
 ```
 
+## Tests 
+
 ## Configuration options
 
 The flags can be configured as following:
- * type: 
+ * type: ["string", ""]
  * alias: The abbrivation of the flag. This is usally only one letter and will be used with a single dash, ex -v for verbose.
  * description: This contain the text which will be shown in the help command. 
  * default: Containt the default value which will be written in the result, if the flag is missing.   

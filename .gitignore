@@ -17,6 +17,9 @@ jspm_packages/
 .env
 .env.test
 
+# VS Code
+.vscode
+
 # Output of 'npm pack'
 *.tgz
 

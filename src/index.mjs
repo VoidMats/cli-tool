@@ -1,5 +1,5 @@
-import CliTool from "./CliTool.js";
-import CliHelp from "./CliHelp.js";
+import CliTool from "./CliTool.mjs";
+import CliHelp from "./CliHelp.mjs";
 
 /**
  * TODO 
@@ -18,12 +18,11 @@ import CliHelp from "./CliHelp.js";
 // TODO Add argument type Date
 // TODO move help text to a seperate class
 // TODO split CliTool to seperate class 
-// TODO add typescript
 // TODO create a help class to take design class 
 // TODO Add argument type Date
 // TODO remove minimist
 // TODO change input to argument
-// TODO make sure CliTool can handle different node versions
+// TODO make sure CliTool can handle different node versions, but mjs
 
 export {
     CliTool,
