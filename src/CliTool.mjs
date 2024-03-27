@@ -15,11 +15,10 @@ export default class CliTool {
     /**
      * 
      * @constructor
-     * @param { String } description
      * @param { Object } options 
      */
-    constructor(description = "", options = {}) {
-        this._description = description;
+    constructor(options = {}) {
+        this._description;
         this._options = {
             disableColors: (process.env.NODE_DISABLE_COLORS) ? process.env.NODE_DISABLE_COLORS : false,
             detectPackage: true,
@@ -53,9 +52,9 @@ export default class CliTool {
     /**
      * The flags can be configured as following: 
      * {
-     *      all: {
+     *      test: {
      *          type: [boolean, string, number, path, url],
-     *          alias: 'a' or '-a',
+     *          alias: 't' or '-t',
      *          description: 'Text shown in example',
      *          default: 'This is default value of the flag',
      *          required: true | false
@@ -130,6 +129,7 @@ export default class CliTool {
      * 
      * @param { Object } configInput 
      * @param { Object } configFlag 
+     * @param { String } description
      * @returns 
      */
     parse(configInput, configFlag) {
@@ -162,10 +162,7 @@ export default class CliTool {
             if (conf.type === "path" && this._flags[flag]) {
                 if (typeof this._flags[flag] === "string" || this._flags[flag] instanceof String) {
                     if (!fs.existsSync(this._flags[flag])) {
-                        throw new CliHelpException(
-                            this._options.exitCode,
-                            `Flag '${flag}' has none valid path '${this._flags[flag]}'. Please refer to --help or -h. \n`
-                            )
+                        throw new CliHelpException(this._options.exitCode, `Flag '${flag}' has none valid path '${this._flags[flag]}'. Please refer to --help or -h. \n`);
                     }
                 } else {
                     throw new CliException(this._options.exitCode, `Default flag value for '${flag}' has to be a string. Please change config for flags.`);
@@ -258,6 +255,23 @@ export default class CliTool {
         }
     }
 
+    _validatePath(path, type = "path") {
+        if (path === undefined) return false;
+        try {
+            switch(type) {
+                case "file":
+                    return fs.statSync(path).isFile();
+                case "folder":
+                    return fs.statSync(path).isDirectory();
+                default:
+                    throw new Error("Wrong type ")
+            }
+        } catch(error) {
+            if (error.code == "ENOENT") return false;
+            throw error;
+        }
+    }
+
     _validateBoolean(value) {
         try {
             if (typeof value === "string" || value instanceof String) return JSON.parse(value.toLowerCase());
@@ -270,11 +284,16 @@ export default class CliTool {
     _loadPackageJson() {
         [`${__dirname}/package.json`, `${__dirname}/../package.json`, `${__dirname}/../../package.json`].some(path => {
             try {
+                // Read package.json for version and name  
                 const json = JSON.parse(fs.readFileSync(path, 'utf-8'));
                 this._application = {
                     name: json.name, 
                     version: json.version
                 };
+                // Try to read the description of package.json if missed by user
+                if (this._description === undefined || this._description === "") {
+                    this._description = json.description;
+                }
             } catch (error) {} // nope
         });
         if (!this._application) {

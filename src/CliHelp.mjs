@@ -14,12 +14,12 @@ export default class CliHelp {
         if (this.__obj._application.name) helpString += `\n ${this.__obj._application.name.toUpperCase()}\n`;
         if (this.__obj._application.version) helpString += ` Version: ${this.__obj._application.version}\n`;
         if (!this.__obj._options.disableColors) {
-            helpString += " \x1b[35m Usage: \x1b[0m\n"; // Magneta
+            helpString += " \x1b[35m Usage: \x1b[0m\n";     // Magneta
             helpString += `${this.__obj._description}\n`;
             helpString += `\t$\x1b[35m node ${this.__obj._application.name} \x1b[36m<commands>\x1b[90m [options] \x1b[0m \n`;
-            helpString += "\n \x1b[36m Commands: \x1b[0m"; // Cyan
+            helpString += "\n \x1b[36m Commands: \x1b[0m";  // Cyan
             helpString += this._createTextInputs();
-            helpString += "\n \x1b[90m Options: \x1b[0m"; // Grey
+            helpString += "\n \x1b[90m Options: \x1b[0m";   // Grey
             //this._createTextOptions();
         } else {
             helpString += "Usage: ";

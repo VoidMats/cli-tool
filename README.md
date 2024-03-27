@@ -4,13 +4,18 @@ This cli tool was to
 
 
 ## Features
- * Parses arguments through mini
+ * Parses arguments through minimist
  * 
 
 ## Installation
+Can be installed with npm 
+```
+npm install cli-tool
+```
 
 ## How to use
 ```
+// With 
 const { CliTool } = require("CliTool");
 
 const cli = new CliTool("Description of command/script").parse(
